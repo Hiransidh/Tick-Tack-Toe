@@ -1,98 +1,69 @@
-# Tic Tac Toe
-
-board = [' ' for x in range(10)]
-
 
 def print_board(board):
-    print(" " + board[1] + " | " + board[2] + " | " + board[3] + " ")
-    print("-----------")
-    print(" " + board[4] + " | " + board[5] + " | " + board[6] + " ")
-    print("-----------")
-    print(" " + board[7] + " | " + board[8] + " | " + board[9] + " ")
+    """Prints the current state of the game board."""
+    for row in board:
+        print("|".join(row))
 
-
-def insert_letter(letter, position):
-    board[position] = letter
-
-
-def space_is_free(position):
-    return board[position] == ' '
-
-
-def is_winner(bo, le):
-    return (bo[1] == le and bo[2] == le and bo[3] == le) or \
-           (bo[4] == le and bo[5] == le and bo[6] == le) or \
-           (bo[7] == le and bo[8] == le and bo[9] == le) or \
-           (bo[1] == le and bo[4] == le and bo[7] == le) or \
-           (bo[2] == le and bo[5] == le and bo[8] == le) or \
-           (bo[3] == le and bo[6] == le and bo[9] == le) or \
-           (bo[1] == le and bo[5] == le and bo[9] == le) or \
-           (bo[3] == le and bo[5] == le and bo[7] == le)
-
-
-def player_move():
-    run = True
-    while run:
-        move = input("Please select a position to enter the X between 1 to 9: ")
+def get_move(player):
+    """Asks the player for their move and returns it as a tuple (row, col)."""
+    while True:
         try:
-            move = int(move)
-            if 0 < move < 10:
-                if space_is_free(move):
-                    run = False
-                    insert_letter('X', move)
-                else:
-                    print("Sorry, this space is already occupied.")
+            row = int(input(f"{player}, choose a row (1-3): ")) - 1
+            col = int(input(f"{player}, choose a column (1-3): ")) - 1
+            if 0 <= row <= 2 and 0 <= col <= 2:
+                return (row, col)
             else:
-                print("Please type a number between 1 and 9.")
-        except:
-            print("Please type a number.")
+                print("Invalid move. Please choose a row and column between 1 and 3.")
+        except ValueError:
+            print("Invalid input. Please enter a number between 1 and 3.")
 
+def check_win(board):
+    """Checks if the game has been won and returns the winning player (either "X" or "O") or None."""
+    for i in range(3):
+        # Check rows
+        if board[i][0] == board[i][1] == board[i][2] and board[i][0] is not None:
+            return board[i][0]
+        # Check columns
+        if board[0][i] == board[1][i] == board[2][i] and board[0][i] is not None:
+            return board[0][i]
+    # Check diagonals
+    if board[0][0] == board[1][1] == board[2][2] and board[0][0] is not None:
+        return board[0][0]
+    if board[0][2] == board[1][1] == board[2][0] and board[0][2] is not None:
+        return board[0][2]
+    # No winner
+    return None
 
-def computer_move():
-    possible_moves = [x for x, letter in enumerate(board) if letter == ' ' and x != 0]
-    move = 0
+def play_game():
+    """Plays a game of Tic Tac Toe."""
+    board = [[None] * 3 for _ in range(3)]
+    players = ["X", "O"]
+    current_player = 0
+    while True:
+        print_board(board)
+        move = get_move(players[current_player])
+        row, col = move
+        if board[row][col] is not None:
+            print("That space is already taken. Please choose another.")
+            continue
+        board[row][col] = players[current_player]
+        winner = check_win(board)
+        if winner is not None:
+            print_board(board)
+            print(f"{winner} wins!")
+            break
+        if all(all(row) for row in board):
+            print_board(board)
+            print("Tie game!")
+            break
+        current_player = (current_player + 1) % 2
+    play_again = input("Play again? (y/n): ")
+    if play_again.lower() == "y":
+        play_game()
 
-    for let in ['O', 'X']:
-        for i in possible_moves:
-            board_copy = board[:]
-            board_copy[i] = let
-            if is_winner(board_copy, let):
-                move = i
-                return move
+def print_board(board):
+    """Prints the current state of the game board."""
+    for row in board:
+        print("|".join(str(cell) if cell is not None else " " for cell in row))
 
-    corners_open = []
-    for i in possible_moves:
-        if i in [1, 3, 7, 9]:
-            corners_open.append(i)
-    if len(corners_open) > 0:
-        move = select_random(corners_open)
-        return move
-
-    if 5 in possible_moves:
-        move = 5
-        return move
-
-    edges_open = []
-    for i in possible_moves:
-        if i in [2, 4, 6, 8]:
-            edges_open.append(i)
-    if len(edges_open) > 0:
-        move = select_random(edges_open)
-
-    return move
-
-
-def select_random(lst):
-    import random
-    ln = len(lst)
-    r = random.randrange(0, ln)
-    return lst[r]
-
-
-def is_board_full(board):
-    if board.count(' ') > 1:
-        return False
-    else:
-        return True
-
-
+play_game()
